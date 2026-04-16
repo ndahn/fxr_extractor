@@ -8,6 +8,7 @@ from PIL import Image
 
 
 WITCHY_BND = Path(
+    # NOTE Replace all \ with / when changing this path!
     "E:/Games/Elden Ring/Modding/Tools/WitchyBND-v3.0.0.0-win-x64/WitchyBND.exe"
 )
 
@@ -181,9 +182,16 @@ if __name__ == "__main__":
         "--input",
         nargs="+",
         type=Path,
+        required=True,
         help="One or more ffxbnd.dcx files. If folders are specified they will be searched for ffxbnd.dcx files without recursion.",
     )
-    parser.add_argument("-o", "--output", type=Path, help="Output directory.")
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=Path,
+        required=True,
+        help="Output directory.",
+    )
     parser.add_argument(
         "-c",
         "--clear",
@@ -215,6 +223,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     main(args.input, args.output, args.zip, scale=args.scale, clear_output=args.clear)
-
-
-# Example: python .\fxr_extractor\fxr_extractor.py -i 'E:\SteamLibrary\steamapps\common\ELDEN RING\Game\sfx\'  -o .\tmp\eldenring_0 -s 0
