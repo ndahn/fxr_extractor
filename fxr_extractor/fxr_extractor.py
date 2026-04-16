@@ -3,6 +3,7 @@ import shutil
 import argparse
 from pathlib import Path
 import subprocess
+import zipfile
 from PIL import Image
 
 
@@ -111,7 +112,7 @@ def convert(ffxbnd: Path, tmp_path: Path, output_path: Path, scale: float = 1.0)
     try:
         shutil.rmtree(my_tmp_dir)
     except Exception:
-        # This sometimes fails, probably because witchy is still active, 
+        # This sometimes fails, probably because witchy is still active,
         # but we can remove it later
         pass
 
@@ -121,6 +122,7 @@ def convert(ffxbnd: Path, tmp_path: Path, output_path: Path, scale: float = 1.0)
 def main(
     input_paths: list[Path],
     output_path: Path,
+    zip_filename: str,
     scale: float = 1.0,
     clear_output: bool = False,
 ) -> None:
@@ -152,7 +154,20 @@ def main(
     try:
         shutil.rmtree(tmp_path)
     except Exception:
-        print(f"WARNING: failed to remove tmp directory {tmp_path}, you can do it manually")
+        print(
+            f"WARNING: failed to remove tmp directory {tmp_path}, you can do it manually"
+        )
+
+    if zip_filename:
+        if not zip_filename.endswith(".zip"):
+            zip_filename += ".zip"
+
+        print(f"=> Packing archive {zip_filename}...")
+        with zipfile.ZipFile(
+            str(output_path.parent / zip_filename), "w", zipfile.ZIP_DEFLATED
+        ) as zipf:
+            for tex in output_path.glob("*.webp"):
+                zipf.write(str(tex), tex.name)
 
     print("=> Done!\n")
     print(f"Converted {total} dds files from {len(ffxbnds)} binders")
@@ -190,9 +205,16 @@ if __name__ == "__main__":
         default="tga",
         help="Format of the intermediary image format.",
     )
+    parser.add_argument(
+        "-z",
+        "--zip",
+        type=str,
+        default=None,
+        help="Zip the files once done. The string passed is the base name of the zip archive.",
+    )
     args = parser.parse_args()
 
-    main(args.input, args.output, scale=args.scale, clear_output=args.clear)
+    main(args.input, args.output, args.zip, scale=args.scale, clear_output=args.clear)
 
 
 # Example: python .\fxr_extractor\fxr_extractor.py -i 'E:\SteamLibrary\steamapps\common\ELDEN RING\Game\sfx\'  -o .\tmp\eldenring_0 -s 0
